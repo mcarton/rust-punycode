@@ -329,12 +329,18 @@ static TESTS: &'static [(&'static str, &'static str)] = &[
      (&"台湾",     &"kprw13d"),
      (&"台灣",     &"kpry57d"),
      (&"香港",     &"j6w193g"),
+
+     // other
+     (&"", &""),
+     (&"a", &"a-"),
+     (&"0", &"0-"),
+     (&"A", &"A-"),
 ];
 
 #[test]
 fn test_decode() {
     for t in TESTS {
-        assert_eq!(decode(&t.1.to_lowercase()), Ok(t.0.to_lowercase()));
+        assert_eq!(decode(&t.1), Ok(t.0.into()));
     }
 }
 
