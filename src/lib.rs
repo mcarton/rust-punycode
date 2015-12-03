@@ -338,6 +338,8 @@ static TESTS: &'static [(&'static str, &'static str)] = &[
      (&"a", &"a-"),
      (&"0", &"0-"),
      (&"A", &"A-"),
+     (&"é", &"9ca"),
+     (&"\n", &"\n-"),
 ];
 
 #[test]
@@ -357,4 +359,6 @@ fn test_encode() {
 #[test]
 fn test_fail_decode() {
     assert_eq!(decode(&"bcher-kva.ch"), Err(()));
+    assert_eq!(decode(&"+"), Err(()));
+    assert_eq!(decode(&"é"), Err(()));
 }
