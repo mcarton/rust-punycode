@@ -1,0 +1,11 @@
+[package]
+name = "punycode"
+version = "0.1.0"
+authors = ["mcarton <cartonmartin+git@gmail.com>"]
+
+[dependencies]
+clippy = {version = "*", optional = true}
+
+[features]
+default = []
+dev = ["clippy"]
