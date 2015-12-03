@@ -203,7 +203,10 @@ where T : Ord
 fn decode_digit(cp: char) -> u32 {
     let cp = cp as u32;
 
-    if cp - 48 < 10 {
+    if cp < 48 {
+        BASE
+    }
+    else if cp - 48 < 10 {
         cp - 22
     }
     else if cp - 65 < 26 {
@@ -349,4 +352,9 @@ fn test_encode() {
     for t in TESTS {
         assert_eq!(encode(t.0).to_lowercase(), t.1.to_lowercase());
     }
+}
+
+#[test]
+fn test_fail_decode() {
+    assert_eq!(decode(&"bcher-kva.ch"), Err(()));
 }
