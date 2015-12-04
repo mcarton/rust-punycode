@@ -200,23 +200,14 @@ where T : Ord
     else { lhs - rhs }
 }
 
-fn decode_digit(cp: char) -> u32 {
-    let cp = cp as u32;
+fn decode_digit(c: char) -> u32 {
+    let cp = c as u32;
 
-    if cp < 48 {
-        BASE
-    }
-    else if cp - 48 < 10 {
-        cp - 22
-    }
-    else if cp - 65 < 26 {
-        cp - 65
-    }
-    else if cp - 97 < 26 {
-        cp - 97
-    }
-    else {
-        BASE
+    match c {
+        '0' ... '9' => cp - ('0' as u32) + 26,
+        'A' ... 'Z' => cp - ('A' as u32),
+        'a' ... 'z' => cp - ('a' as u32),
+        _ => BASE,
     }
 }
 
@@ -360,5 +351,6 @@ fn test_encode() {
 fn test_fail_decode() {
     assert_eq!(decode(&"bcher-kva.ch"), Err(()));
     assert_eq!(decode(&"+"), Err(()));
+    assert_eq!(decode(&"\\"), Err(()));
     assert_eq!(decode(&"é"), Err(()));
 }
