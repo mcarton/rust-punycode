@@ -7,5 +7,5 @@ fn main() {
     io::stdin().read_line(&mut input).unwrap();
 
     let s = punycode::encode(&input[0..input.len()-1]);
-    println!("{}", s);
+    println!("{}", s.unwrap());
 }

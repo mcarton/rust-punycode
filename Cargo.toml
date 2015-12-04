@@ -5,7 +5,7 @@ keywords = ["punycode", "rfc-3492", "rfc3492"]
 license = "MIT"
 name = "punycode"
 repository = "https://github.com/mcarton/rust-punycode.git"
-version = "0.3.0"
+version = "0.4.0"
 
 [dependencies]
 clippy = {version = "0.0", optional = true}

@@ -73,19 +73,33 @@ pub fn decode(input: &str) -> Result<String, ()> {
                 return Err(());
             }
 
+            // overflow check
+            if digit > (std::u32::MAX - i) / w {
+                return Err(());
+            }
             i += digit * w;
-            let t = clamped_sub(TMIN, k, bias, TMAX);
 
+            let t = clamped_sub(TMIN, k, bias, TMAX);
             if digit < t {
                 break;
             }
 
+            // overflow check
+            if BASE > (std::u32::MAX - t) / w {
+                return Err(());
+            }
             w *= BASE - t;
         }
 
         let len = (output.len() + 1) as u32;
         bias = adapt(i - oldi, len, oldi == 0);
-        n += i / len;
+
+        let il = i / len;
+        // overflow check
+        if n > std::u32::MAX - il {
+            return Err(());
+        }
+        n += il;
         i %= len;
 
         if let Some(c) = std::char::from_u32(n) {
@@ -106,15 +120,15 @@ pub fn decode(input: &str) -> Result<String, ()> {
 /// # Example
 /// ```
 /// assert_eq!(
-///     punycode::encode("académie-française"),
+///     punycode::encode("académie-française").unwrap(),
 ///     "acadmie-franaise-npb1a"
 /// );
 /// ```
-pub fn encode(input: &str) -> String {
+pub fn encode(input: &str) -> Result<String, ()> {
     encode_slice(&input.chars().collect::<Vec<char>>())
 }
 
-fn encode_slice(input: &[char]) -> String {
+fn encode_slice(input: &[char]) -> Result<String, ()> {
     let mut n = INITIAL_N;
     let mut delta = 0;
     let mut bias = INITIAL_BIAS;
@@ -129,7 +143,12 @@ fn encode_slice(input: &[char]) -> String {
 
     while h < input.len() as u32 {
         let m = *input.iter().filter(|&&c| (c as u32) >= n).min().unwrap() as u32;
+
+        if m - n > (std::u32::MAX - delta) / (h + 1) {
+            return Err(());
+        }
         delta += (m - n) * (h + 1);
+
         n = m;
 
         for c in input {
@@ -166,7 +185,7 @@ fn encode_slice(input: &[char]) -> String {
         n += 1;
     }
 
-    output
+    Ok(output)
 }
 
 fn adapt(delta: u32, numpoint: u32, firsttime: bool) -> u32 {
@@ -343,7 +362,7 @@ fn test_decode() {
 #[test]
 fn test_encode() {
     for t in TESTS {
-        assert_eq!(encode(t.0).to_lowercase(), t.1.to_lowercase());
+        assert_eq!(encode(t.0).unwrap().to_lowercase(), t.1.to_lowercase());
     }
 }
 
@@ -353,4 +372,5 @@ fn test_fail_decode() {
     assert_eq!(decode(&"+"), Err(()));
     assert_eq!(decode(&"\\"), Err(()));
     assert_eq!(decode(&"é"), Err(()));
+    assert_eq!(decode(&"99999999"), Err(()));
 }
