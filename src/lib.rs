@@ -15,8 +15,6 @@
 
 //! Fonctions to decode and encode [RFC-3492 Punycode](https://tools.ietf.org/html/rfc3492).
 
-use std::ascii::AsciiExt;
-
 // See [RFC-3492, section 4](https://tools.ietf.org/html/rfc3492#section-4).
 const BASE         : u32 = 36;
 const TMIN         : u32 = 1;
