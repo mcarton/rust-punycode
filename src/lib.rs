@@ -12,8 +12,18 @@
 #![cfg_attr(feature = "dev", feature(plugin))]
 #![cfg_attr(feature = "dev", plugin(clippy))]
 #![cfg_attr(feature = "dev", deny(clippy))]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 //! Fonctions to decode and encode [RFC-3492 Punycode](https://tools.ietf.org/html/rfc3492).
+
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+
+#[cfg(not(feature = "std"))]
+use alloc::{
+    string::String,
+    vec::Vec,
+};
 
 // See [RFC-3492, section 4](https://tools.ietf.org/html/rfc3492#section-4).
 const BASE         : u32 = 36;
@@ -47,7 +57,7 @@ pub fn decode(input: &str) -> Result<String, ()> {
         (input[0..i].chars().collect(), &input[i+1..])
     }
     else {
-        (vec![], &input[..])
+        (Vec::new(), &input[..])
     };
 
     let mut it = input.chars().peekable();
@@ -72,7 +82,7 @@ pub fn decode(input: &str) -> Result<String, ()> {
             }
 
             // overflow check
-            if digit > (std::u32::MAX - i) / w {
+            if digit > (core::u32::MAX - i) / w {
                 return Err(());
             }
             i += digit * w;
@@ -83,7 +93,7 @@ pub fn decode(input: &str) -> Result<String, ()> {
             }
 
             // overflow check
-            if BASE > (std::u32::MAX - t) / w {
+            if BASE > (core::u32::MAX - t) / w {
                 return Err(());
             }
             w *= BASE - t;
@@ -94,13 +104,13 @@ pub fn decode(input: &str) -> Result<String, ()> {
 
         let il = i / len;
         // overflow check
-        if n > std::u32::MAX - il {
+        if n > core::u32::MAX - il {
             return Err(());
         }
         n += il;
         i %= len;
 
-        if let Some(c) = std::char::from_u32(n) {
+        if let Some(c) = core::char::from_u32(n) {
             output.insert(i as usize, c);
         }
         else {
@@ -142,7 +152,7 @@ fn encode_slice(input: &[char]) -> Result<String, ()> {
     while h < input.len() as u32 {
         let m = *input.iter().filter(|&&c| (c as u32) >= n).min().unwrap() as u32;
 
-        if m - n > (std::u32::MAX - delta) / (h + 1) {
+        if m - n > (core::u32::MAX - delta) / (h + 1) {
             return Err(());
         }
         delta += (m - n) * (h + 1);
@@ -208,8 +218,8 @@ fn adapt(delta: u32, numpoint: u32, firsttime: bool) -> u32 {
 /// Compute `lhs-rhs`. Result will be clamped in [min, max].
 fn clamped_sub<T>(min: T, lhs: T, rhs: T, max: T) -> T
 where T : Ord
-        + std::ops::Add<Output=T>
-        + std::ops::Sub<Output=T>
+        + core::ops::Add<Output=T>
+        + core::ops::Sub<Output=T>
         + Copy
 {
     if min + rhs >= lhs { min }
@@ -221,9 +231,9 @@ fn decode_digit(c: char) -> u32 {
     let cp = c as u32;
 
     match c {
-        '0' ... '9' => cp - ('0' as u32) + 26,
-        'A' ... 'Z' => cp - ('A' as u32),
-        'a' ... 'z' => cp - ('a' as u32),
+        '0' ..= '9' => cp - ('0' as u32) + 26,
+        'A' ..= 'Z' => cp - ('A' as u32),
+        'a' ..= 'z' => cp - ('a' as u32),
         _ => BASE,
     }
 }
